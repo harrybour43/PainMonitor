@@ -2,19 +2,13 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Monitor de Dor</title>
 
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#c08457" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="PainMonitor" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
 
@@ -179,15 +173,9 @@
         animation: pulse 1.5s infinite;
       }
       @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 15px rgba(255, 0, 0, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-        }
+        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(255, 0, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
       }
       #samuAlert a {
         color: white;
@@ -214,45 +202,18 @@
         font-weight: bold;
       }
 
-      .tag-tornD {
-        border-color: #3498db;
-        color: #3498db;
-      }
-      .tag-tornE {
-        border-color: #9b59b6;
-        color: #9b59b6;
-      }
-      .tag-quadril {
-        border-color: #e67e22;
-        color: #e67e22;
-      }
-      .tag-hernia {
-        border-color: #1abc9c;
-        color: #1abc9c;
-      }
-      .tag-esofago {
-        border-color: #e84393;
-        color: #e84393;
-      }
+      .tag-tornD { border-color: #3498db; color: #3498db; }
+      .tag-tornE { border-color: #9b59b6; color: #9b59b6; }
+      .tag-quadril { border-color: #e67e22; color: #e67e22; }
+      .tag-hernia { border-color: #1abc9c; color: #1abc9c; }
+      .tag-esofago { border-color: #e84393; color: #e84393; }
 
-      .tag.active {
-        color: #1a1a1a !important;
-      }
-      .tag-tornD.active {
-        background: #3498db;
-      }
-      .tag-tornE.active {
-        background: #9b59b6;
-      }
-      .tag-quadril.active {
-        background: #e67e22;
-      }
-      .tag-hernia.active {
-        background: #1abc9c;
-      }
-      .tag-esofago.active {
-        background: #e84393;
-      }
+      .tag.active { color: #1a1a1a !important; }
+      .tag-tornD.active { background: #3498db; }
+      .tag-tornE.active { background: #9b59b6; }
+      .tag-quadril.active { background: #e67e22; }
+      .tag-hernia.active { background: #1abc9c; }
+      .tag-esofago.active { background: #e84393; }
 
       textarea {
         width: 100%;
@@ -542,24 +503,15 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
       import {
-        getFirestore,
-        collection,
-        addDoc,
-        serverTimestamp,
-        query,
-        where,
-        getDocs,
+        getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
       import {
-        getAuth,
-        signInWithEmailAndPassword,
-        createUserWithEmailAndPassword,
-        onAuthStateChanged,
-        signOut,
+        getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
+      // A CHAVE ORIGINAL DO FIREBASE VOLTOU PARA CÁ
       const firebaseConfig = {
-        apiKey: "AIzaSyDSWTAS0QT7YlPayURFIbjuYd_mVk_YGJU",
+        apiKey: "AIzaSyDSK6mkMqp-Ivjbb3qoZUrkNfvuvjDrA2I",
         authDomain: "painmonitor-7bc13.firebaseapp.com",
         projectId: "painmonitor-7bc13",
         storageBucket: "painmonitor-7bc13.firebasestorage.app",
@@ -617,11 +569,9 @@
         }
         createUserWithEmailAndPassword(auth, email, pass).catch((error) => {
           if (error.code === "auth/email-already-in-use") {
-            errorMsg.innerText =
-              "Este e-mail já tem uma conta. Clique em Entrar.";
+            errorMsg.innerText = "Este e-mail já tem uma conta. Clique em Entrar.";
           } else {
-            errorMsg.innerText =
-              "Erro ao criar conta. Verifique o formato do e-mail.";
+            errorMsg.innerText = "Erro ao criar conta. Verifique o formato do e-mail.";
           }
           errorMsg.style.display = "block";
         });
@@ -670,9 +620,7 @@
       let selectedLocation = "";
       let selectedColor = ""; 
       window.selectTag = function (element, locName, colorCode) {
-        document
-          .querySelectorAll(".tag")
-          .forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".tag").forEach((t) => t.classList.remove("active"));
         element.classList.add("active");
         selectedLocation = locName;
         selectedColor = colorCode;
@@ -708,9 +656,7 @@
 
           slider.value = 0;
           slider.dispatchEvent(new Event("input"));
-          document
-            .querySelectorAll(".tag")
-            .forEach((t) => t.classList.remove("active"));
+          document.querySelectorAll(".tag").forEach((t) => t.classList.remove("active"));
           document.getElementById("contextInput").value = "";
           selectedLocation = "";
           selectedColor = "";
@@ -748,17 +694,12 @@
             if (data.dataHora) registros.push(data);
           });
 
-          registros.sort(
-            (a, b) => a.dataHora.toMillis() - b.dataHora.toMillis()
-          );
+          registros.sort((a, b) => a.dataHora.toMillis() - b.dataHora.toMillis());
 
           const datasets = {};
           registros.forEach((data) => {
             const dataObj = data.dataHora.toDate();
-            const diaStr = dataObj.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-            });
+            const diaStr = dataObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
             const horaDecimal = dataObj.getHours() + dataObj.getMinutes() / 60;
 
             if (!datasets[data.localizacao]) {
@@ -769,11 +710,7 @@
                 data: [],
               };
             }
-            datasets[data.localizacao].data.push({
-              x: diaStr,
-              y: horaDecimal,
-              r: data.intensidade * 3,
-            });
+            datasets[data.localizacao].data.push({ x: diaStr, y: horaDecimal, r: data.intensidade * 3 });
           });
 
           const chartData = { datasets: Object.values(datasets) };
@@ -781,8 +718,7 @@
           renderChart(chartData);
         } catch (e) {
           console.error("Erro no gráfico:", e);
-          document.getElementById("loadingChartText").innerText =
-            "Erro ao carregar dados.";
+          document.getElementById("loadingChartText").innerText = "Erro ao carregar dados.";
         }
       };
 
@@ -800,13 +736,7 @@
                 title: { display: true, text: "Hora do Dia", color: "#ccc" },
                 min: 0,
                 max: 24,
-                ticks: {
-                  color: "#888",
-                  stepSize: 4,
-                  callback: function (value) {
-                    return value + "h";
-                  },
-                },
+                ticks: { color: "#888", stepSize: 4, callback: function (value) { return value + "h"; } },
                 grid: { color: "#333" },
               },
               x: {
@@ -820,7 +750,7 @@
         });
       }
 
-     // --- INTELIGÊNCIA ARTIFICIAL (COM ANTI-BLOQUEIO E DEDO-DURO) ---
+      // --- INTELIGÊNCIA ARTIFICIAL ---
       window.analyzeDay = async function () {
         if (!currentUser) {
           alert("Faça login para analisar dados.");
@@ -828,8 +758,7 @@
         }
 
         document.getElementById("aiModal").style.display = "flex";
-        document.getElementById("aiResponseText").innerHTML =
-          "<i>Lendo seus registros e consultando a IA...</i>";
+        document.getElementById("aiResponseText").innerHTML = "<i>Lendo seus registros e consultando a IA...</i>";
 
         try {
           const q = query(collection(db, "registros_dor"), where("userId", "==", currentUser.uid));
@@ -860,7 +789,6 @@
             return;
           }
 
-          // Deixei o prompt mais brando para não assustar o filtro médico
           const promptMestre = `Atue como um assistente de organização de rotina. 
           Leia o diário de desconforto físico dos últimos 10 dias do usuário e escreva um único parágrafo com:
           1. O dia e horário de maior nível relatado e o que ele estava fazendo.
@@ -870,14 +798,14 @@
           
           Diário: ${registrosTexto}`;
 
-          const API_KEY = "AIzaSyAnjf2kQG2DK6Jmxj84jwqDHLZ5XEJbCzg";
+          // A CHAVE NOVA DO GEMINI AGORA ESTÁ NO LUGAR CERTO
+          const API_KEY = "AIzaSyDSWTAS0QT7YlPayURFIbjuYd_mVk_YGJU";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
           const resposta = await fetch(url, {
             method: "POST", 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
               contents: [{ parts: [{ text: promptMestre }] }],
-              // Abaixando os escudos de segurança do Gemini
               safetySettings: [
                 { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
                 { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
@@ -887,28 +815,25 @@
 
           const aiData = await resposta.json();
           
-          // Dedo-duro 1: Erro de chave ou servidor
           if (aiData.error) {
             console.error("Erro da API:", aiData.error);
             document.getElementById("aiResponseText").innerHTML = `<b>Erro do Google:</b> ${aiData.error.message}`;
             return;
           }
 
-          // Dedo-duro 2: Bloqueio de Segurança
           if (!aiData.candidates || !aiData.candidates[0].content) {
              console.error("Resposta Bloqueada:", aiData);
              document.getElementById("aiResponseText").innerHTML = "<b>Aviso:</b> O Google Gemini bloqueou a resposta por achar que é um conselho médico. Verifique o console para mais detalhes.";
              return;
           }
 
-          // Se deu tudo certo, exibe o texto!
           document.getElementById("aiResponseText").innerHTML = aiData.candidates[0].content.parts[0].text.replace(/\n/g, "<br>");
           
         } catch (e) {
           console.error("Erro interno:", e); 
           document.getElementById("aiResponseText").innerHTML = `Erro interno do aplicativo: ${e.message}`;
         }
-      }; // FIM DA FUNÇÃO
+      }; 
     </script>
     <script>
       if ("serviceWorker" in navigator) {
