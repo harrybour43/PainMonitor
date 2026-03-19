@@ -34,6 +34,13 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        transition: box-shadow 0.3s ease, background-color 0.3s ease; /* Transição suave para o alerta vermelho */
+      }
+
+      /* Efeito de Emergência (Nível 10) */
+      body.emergency {
+        box-shadow: inset 0 0 50px 10px rgba(255, 0, 0, 0.5);
+        background-color: #2a0a0a;
       }
 
       /* --- TELA SPLASH / LOGIN --- */
@@ -56,7 +63,6 @@
         text-shadow: 0 0 20px var(--secondary);
       }
 
-      /* Campos de Login */
       .auth-input {
         width: 80%;
         max-width: 280px;
@@ -160,6 +166,36 @@
         margin: 15px 0;
       }
 
+      /* Alerta SAMU */
+      #samuAlert {
+        display: none;
+        background: #ff0000;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 20px;
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 15px rgba(255, 0, 0, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+        }
+      }
+      #samuAlert a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+        display: block;
+      }
+
+      /* Tags Restauradas */
       .tags {
         display: flex;
         flex-wrap: wrap;
@@ -175,6 +211,7 @@
         cursor: pointer;
         font-weight: bold;
       }
+
       .tag-tornD {
         border-color: #3498db;
         color: #3498db;
@@ -187,6 +224,15 @@
         border-color: #e67e22;
         color: #e67e22;
       }
+      .tag-hernia {
+        border-color: #1abc9c;
+        color: #1abc9c;
+      }
+      .tag-esofago {
+        border-color: #e84393;
+        color: #e84393;
+      }
+
       .tag.active {
         color: #1a1a1a !important;
       }
@@ -198,6 +244,12 @@
       }
       .tag-quadril.active {
         background: #e67e22;
+      }
+      .tag-hernia.active {
+        background: #1abc9c;
+      }
+      .tag-esofago.active {
+        background: #e84393;
       }
 
       textarea {
@@ -300,29 +352,39 @@
           />
         </div>
 
+        <div id="samuAlert">
+          <a href="tel:192">⚠️ DOR EXTREMA: LIGAR SAMU (192)</a>
+        </div>
+
         <h4 style="text-align: right">Localização</h4>
         <div class="tags" id="locationTags">
           <button
             class="tag tag-tornD"
-            onclick="selectTag(this, 'Tornozelo D')"
+            onclick="selectTag(this, 'Tornozelo Direito')"
           >
-            TORN D
+            TORNOZELO D
           </button>
           <button
             class="tag tag-tornE"
-            onclick="selectTag(this, 'Tornozelo E')"
+            onclick="selectTag(this, 'Tornozelo Esquerdo')"
           >
-            TORN E
+            TORNOZELO E
           </button>
           <button class="tag tag-quadril" onclick="selectTag(this, 'Quadril')">
             QUADRIL
+          </button>
+          <button class="tag tag-hernia" onclick="selectTag(this, 'Hérnia')">
+            HÉRNIA
+          </button>
+          <button class="tag tag-esofago" onclick="selectTag(this, 'Esôfago')">
+            ESÔFAGO
           </button>
         </div>
 
         <h4 style="text-align: right">Contexto</h4>
         <textarea
           id="contextInput"
-          placeholder="O que causou? Clima?"
+          placeholder="O que você estava fazendo?"
         ></textarea>
 
         <button class="save-btn" onclick="saveLog()">Registrar ➔</button>
@@ -407,10 +469,7 @@
     </div>
 
     <script type="module">
-      // 1. IMPORTAÇÃO PRINCIPAL (Essa era a linha que estava faltando!)
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-      
-      // 2. Importações do Banco de Dados
       import {
         getFirestore,
         collection,
@@ -420,8 +479,6 @@
         where,
         getDocs,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-      
-      // 3. Importações de E-mail e Senha
       import {
         getAuth,
         signInWithEmailAndPassword,
@@ -439,7 +496,7 @@
         appId: "1:261972149086:web:41422c1174f38415cd45cf",
       };
 
-      const app = initializeApp(firebaseConfig); // Agora isso vai funcionar!
+      const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
       let currentUser = null;
@@ -510,9 +567,11 @@
         signOut(auth);
       };
 
-      // Lógica da Interface (Slider)
+      // Lógica da Interface (Slider e SAMU Restaurado)
       const slider = document.getElementById("painSlider");
       const display = document.getElementById("painValueDisplay");
+      const samuAlert = document.getElementById("samuAlert");
+      const body = document.body;
 
       function getColorForPain(value) {
         let r, g, b;
@@ -534,6 +593,15 @@
         const val = parseInt(this.value);
         display.textContent = val;
         display.style.color = getColorForPain(val);
+
+        // Disparo Visual do SAMU
+        if (val === 10) {
+          samuAlert.style.display = "block";
+          body.classList.add("emergency");
+        } else {
+          samuAlert.style.display = "none";
+          body.classList.remove("emergency");
+        }
       });
       display.style.color = getColorForPain(0);
 
@@ -575,7 +643,7 @@
           });
 
           slider.value = 0;
-          slider.dispatchEvent(new Event("input"));
+          slider.dispatchEvent(new Event("input")); // Reseta o slider e o alerta do SAMU
           document
             .querySelectorAll(".tag")
             .forEach((t) => t.classList.remove("active"));
