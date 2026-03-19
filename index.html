@@ -9,9 +9,7 @@
     <title>Monitor de Dor</title>
 
     <link rel="manifest" href="./manifest.json" />
-
     <meta name="theme-color" content="#c08457" />
-
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -19,9 +17,7 @@
     />
     <meta name="apple-mobile-web-app-title" content="PainMonitor" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-    
-      };
-    </script>
+
     <style>
       :root {
         --bg-color: #1a1a1a;
@@ -56,22 +52,64 @@
       }
       .logo-icon {
         font-size: 4rem;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         text-shadow: 0 0 20px var(--secondary);
       }
+
+      /* Campos de Login */
+      .auth-input {
+        width: 80%;
+        max-width: 280px;
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #4d4d4d;
+        background: #262626;
+        color: white;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .auth-input:focus {
+        outline: none;
+        border-color: var(--secondary);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        width: 80%;
+        max-width: 280px;
+        margin-top: 10px;
+      }
       .login-btn {
-        background: white;
-        color: #333;
+        flex: 1;
+        padding: 14px;
+        border-radius: 8px;
         border: none;
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: bold;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        background: white;
+        color: #1a1a1a;
+      }
+      .register-btn {
+        flex: 1;
+        padding: 14px;
+        border-radius: 8px;
+        border: 1px solid var(--secondary);
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        background: transparent;
+        color: var(--secondary);
+      }
+      #loginError {
+        color: #ff7f50;
+        font-size: 0.9rem;
+        margin-top: 15px;
+        display: none;
+        text-align: center;
+        max-width: 280px;
       }
 
       /* --- APP PRINCIPAL --- */
@@ -88,14 +126,11 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         border: 1px solid #3d3d3d;
       }
-
       h2,
       h4 {
         color: var(--secondary);
         margin-top: 0;
       }
-
-      /* Ergonomia: Alinhamento para a Direita (Uso com Polegar) */
       .header-area {
         display: flex;
         justify-content: space-between;
@@ -125,7 +160,6 @@
         margin: 15px 0;
       }
 
-      /* Tags Alinhadas à Direita */
       .tags {
         display: flex;
         flex-wrap: wrap;
@@ -176,10 +210,8 @@
         margin-bottom: 20px;
         box-sizing: border-box;
       }
-
-      /* Botão Salvar Alinhado à Direita */
       button.save-btn {
-        width: 80%; /* Não ocupa a tela toda para ficar mais fácil para o polegar */
+        width: 80%;
         margin-left: auto;
         display: block;
         padding: 16px;
@@ -192,7 +224,6 @@
         cursor: pointer;
       }
 
-      /* Botões de Ação Inferiores */
       .bottom-actions {
         position: fixed;
         bottom: 20px;
@@ -224,25 +255,30 @@
   <body>
     <div id="loginScreen">
       <div class="logo-icon">🔥</div>
-      <h1 style="color: var(--secondary); margin-top: 0">PainMonitor</h1>
-      <p
-        style="
-          color: #888;
-          margin-bottom: 40px;
-          text-align: center;
-          max-width: 80%;
-        "
-      >
-        Acesse para gerenciar seus registros de forma segura.
-      </p>
-      <button class="login-btn" onclick="loginWithGoogle()">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-          width="20"
-          alt="G"
-        />
-        Entrar com Google
-      </button>
+      <h1 style="color: var(--secondary); margin-top: 0; margin-bottom: 30px">
+        PainMonitor
+      </h1>
+
+      <input
+        type="email"
+        id="emailInput"
+        class="auth-input"
+        placeholder="Seu e-mail"
+      />
+      <input
+        type="password"
+        id="passwordInput"
+        class="auth-input"
+        placeholder="Sua senha (mín. 6 letras)"
+      />
+
+      <div class="btn-group">
+        <button class="login-btn" onclick="loginWithEmail()">Entrar</button>
+        <button class="register-btn" onclick="createAccount()">
+          Criar Conta
+        </button>
+      </div>
+      <p id="loginError"></p>
     </div>
 
     <div id="appScreen">
@@ -371,7 +407,6 @@
     </div>
 
     <script type="module">
-      // 1. Importações (Limpei a duplicação do Firestore que estava no seu arquivo)
       import {
         getFirestore,
         collection,
@@ -381,17 +416,15 @@
         where,
         getDocs,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-      // Importamos o signInWithRedirect em vez do Popup
+      // Importando os métodos de E-mail e Senha
       import {
         getAuth,
-        signInWithRedirect,
-        GoogleAuthProvider,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-      // SUAS CHAVES
       const firebaseConfig = {
         apiKey: "AIzaSyDSK6mkMqp-Ivjbb3qoZUrkNfvuvjDrA2I",
         authDomain: "painmonitor-7bc13.firebaseapp.com",
@@ -404,11 +437,9 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
-
       let currentUser = null;
 
-      // Controle de Autenticação (Funciona perfeitamente com o Redirect)
+      // Controle de Autenticação
       onAuthStateChanged(auth, (user) => {
         if (user) {
           currentUser = user;
@@ -423,11 +454,50 @@
         }
       });
 
-      // Nova Função de Login (Própria para Mobile)
-      window.loginWithGoogle = () => {
-        signInWithRedirect(auth, provider).catch((error) => {
-          console.error("Erro no login", error);
-          alert("Erro ao iniciar login com Google.");
+      // Função de Login
+      window.loginWithEmail = () => {
+        const email = document.getElementById("emailInput").value;
+        const pass = document.getElementById("passwordInput").value;
+        const errorMsg = document.getElementById("loginError");
+
+        if (!email || !pass) {
+          errorMsg.innerText = "Preencha e-mail e senha.";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        signInWithEmailAndPassword(auth, email, pass).catch((error) => {
+          errorMsg.innerText = "Erro: E-mail ou senha incorretos.";
+          errorMsg.style.display = "block";
+        });
+      };
+
+      // Função de Criar Conta
+      window.createAccount = () => {
+        const email = document.getElementById("emailInput").value;
+        const pass = document.getElementById("passwordInput").value;
+        const errorMsg = document.getElementById("loginError");
+
+        if (!email || !pass) {
+          errorMsg.innerText = "Preencha e-mail e senha.";
+          errorMsg.style.display = "block";
+          return;
+        }
+        if (pass.length < 6) {
+          errorMsg.innerText = "A senha precisa ter pelo menos 6 caracteres.";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        createUserWithEmailAndPassword(auth, email, pass).catch((error) => {
+          if (error.code === "auth/email-already-in-use") {
+            errorMsg.innerText =
+              "Este e-mail já tem uma conta. Clique em Entrar.";
+          } else {
+            errorMsg.innerText =
+              "Erro ao criar conta. Verifique o formato do e-mail.";
+          }
+          errorMsg.style.display = "block";
         });
       };
 
@@ -435,13 +505,7 @@
         signOut(auth);
       };
 
-      // ... (O resto do seu código continua exatamente igual a partir daqui: slider, saveLog, etc)
-
-      window.logout = () => {
-        signOut(auth);
-      };
-
-      // 2. Lógica da Interface (Slider e Cores mantidos)
+      // Lógica da Interface (Slider)
       const slider = document.getElementById("painSlider");
       const display = document.getElementById("painValueDisplay");
 
@@ -477,7 +541,7 @@
         selectedLocation = locName;
       };
 
-      // 3. Salvar vinculando ao ID do Usuário (UID)
+      // Salvar Registro
       window.saveLog = async function () {
         const painLevel = parseInt(slider.value);
         const contextText = document.getElementById("contextInput").value;
@@ -498,7 +562,7 @@
 
         try {
           await addDoc(collection(db, "registros_dor"), {
-            userId: currentUser.uid, // <-- ISSO GARANTE A PRIVACIDADE
+            userId: currentUser.uid,
             intensidade: painLevel,
             localizacao: selectedLocation || "Outro",
             contexto: contextText,
@@ -520,35 +584,34 @@
           }, 2000);
         } catch (e) {
           console.error("Erro:", e);
-          alert("Erro de permissão. Atualizou as regras do Firebase?");
+          alert("Erro ao salvar.");
           btn.innerText = textoOriginal;
           btn.disabled = false;
         }
       };
 
       window.openChart = () => {
-        alert("Gráfico sendo remontado para o novo layout.");
+        alert("Gráfico temporariamente desativado para o teste de login.");
       };
+
+      // Inteligência Artificial
       window.analyzeDay = async function () {
         if (!currentUser) {
-          alert("Você precisa estar logado para analisar dados.");
+          alert("Faça login para analisar dados.");
           return;
         }
 
-        // Abre a janela e mostra o aviso de carregamento
         document.getElementById("aiModal").style.display = "flex";
         document.getElementById("aiResponseText").innerHTML =
-          "<i>Lendo seus registros e consultando a IA... isso pode levar alguns segundos.</i>";
+          "<i>Lendo seus registros e consultando a IA...</i>";
 
         try {
-          // 1. Busca todos os registros exclusivos do usuário logado
           const q = query(
             collection(db, "registros_dor"),
             where("userId", "==", currentUser.uid)
           );
           const querySnapshot = await getDocs(q);
 
-          // 2. Filtra apenas os registros das últimas 24 horas (Feito no JS para evitar criação de índices complexos no Firebase)
           const agora = new Date();
           const limite24h = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
           let registrosTexto = "";
@@ -575,22 +638,20 @@
 
           if (contagem === 0) {
             document.getElementById("aiResponseText").innerHTML =
-              "Você não tem registros nas últimas 24 horas para eu analisar. Registre algumas dores primeiro!";
+              "Você não tem registros nas últimas 24 horas.";
             return;
           }
 
-          // 3. Monta a instrução de comportamento para o Gemini
           const promptMestre = `Você é um analista de dados de saúde focado em dor crônica e sequelas ortopédicas. 
-          Analise os seguintes registros de dor das últimas 24 horas do paciente e escreva um resumo em um único parágrafo fluido contendo:
+          Analise os registros das últimas 24h e resuma em um parágrafo:
           1. O pico de dor e o possível gatilho.
-          2. Uma correlação ou padrão observado (ex: piora com o clima, melhora após repouso).
-          3. Uma sugestão prática ou palavra de cautela em tom profissional.
-          Não use saudações, vá direto ao ponto.
+          2. Uma correlação ou padrão observado.
+          3. Uma sugestão prática.
+          Sem saudações.
 
-          Registros do paciente:
+          Registros:
           ${registrosTexto}`;
 
-          // 4. Envia para a API do Google AI Studio
           const API_KEY = "AIzaSyAnjf2kQG2DK6Jmxj84jwqDHLZ5XEJbCzg";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
@@ -603,36 +664,21 @@
           });
 
           const aiData = await resposta.json();
+          if (aiData.error) throw new Error("Erro na API do Gemini");
 
-          if (aiData.error) {
-            console.error("Erro Gemini:", aiData.error);
-            document.getElementById("aiResponseText").innerHTML =
-              "Erro de comunicação com a IA. Verifique o console.";
-            return;
-          }
-
-          // 5. Exibe a resposta formatada na tela
-          const textoFinal = aiData.candidates[0].content.parts[0].text.replace(
-            /\n/g,
-            "<br>"
-          );
-          document.getElementById("aiResponseText").innerHTML = textoFinal;
-        } catch (e) {
-          console.error("Erro no processamento:", e);
           document.getElementById("aiResponseText").innerHTML =
-            "Erro ao ler os dados do banco.";
+            aiData.candidates[0].content.parts[0].text.replace(/\n/g, "<br>");
+        } catch (e) {
+          console.error(e);
+          document.getElementById("aiResponseText").innerHTML =
+            "Erro ao processar a análise.";
         }
       };
     </script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./sw.js")
-            .then((reg) =>
-              console.log("Service Worker registrado com sucesso!")
-            )
-            .catch((err) => console.log("Erro no Service Worker:", err));
+          navigator.serviceWorker.register("./sw.js");
         });
       }
     </script>
