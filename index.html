@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Dor</title>
+    <title>Monitor de Dor - Modo Quente</title>
     <style>
         :root {
-            --bg-color: #f4f4f9;
-            --card-bg: #ffffff;
-            --text-main: #333;
-            --primary: #4A90E2;
+            --bg-color: #1a1a1a; /* Preto de tom quente */
+            --card-bg: #2d2d2d;
+            --text-main: #f0e6d6; /* Off-white quente */
+            --primary: #c08457; /* Cobre quente */
+            --primary-dark: #a66f46;
+            --secondary: #e6b38a; /* Bronze claro */
+            --accent: #ff7f50; /* Coral para picos */
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -25,105 +28,124 @@
             background: var(--card-bg);
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             width: 100%;
             max-width: 400px;
             margin-bottom: 20px;
+            border: 1px solid #3d3d3d;
         }
-        h2 { margin-top: 0; font-size: 1.5rem; text-align: center; }
+        h2 { margin-top: 0; font-size: 1.5rem; text-align: center; color: var(--secondary); }
         
         /* Slider de Dor */
         .slider-container { text-align: center; margin: 20px 0; }
         #painValueDisplay {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: bold;
             transition: color 0.3s ease;
-            color: #2ecc71; /* Verde inicial */
+            text-shadow: 0 0 10px rgba(192, 132, 87, 0.5);
         }
         input[type=range] {
             width: 100%;
-            margin: 10px 0;
+            margin: 15px 0;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
 
         /* Tags de Localização */
-        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; justify-content: center; }
         .tag {
-            padding: 8px 16px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            background: none;
+            padding: 10px 20px;
+            border: 2px solid #4d4d4d;
+            border-radius: 25px;
+            background: #262626;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        .tag:hover {
+            border-color: var(--secondary);
+            background: #333;
         }
         .tag.active {
             background: var(--primary);
-            color: white;
+            color: #1a1a1a;
             border-color: var(--primary);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(192, 132, 87, 0.4);
         }
 
         /* Contexto */
         textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid #4d4d4d;
             border-radius: 8px;
+            background: #262626;
+            color: var(--text-main);
             box-sizing: border-box;
             font-family: inherit;
             resize: vertical;
-            min-height: 80px;
+            min-height: 90px;
             margin-bottom: 20px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
         }
 
         /* Botão Salvar */
         button.save-btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: var(--primary);
-            color: white;
+            color: #1a1a1a;
             border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
-        button.save-btn:active { background: #357ABD; }
+        button.save-btn:hover { background: var(--secondary); }
+        button.save-btn:active { background: var(--primary-dark); }
 
         /* Histórico */
         .history { width: 100%; max-width: 400px; }
+        .history h3 { color: var(--secondary); text-align: center; }
         .log-item {
             background: var(--card-bg);
-            padding: 16px;
+            padding: 18px;
             border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 6px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+            border-left: 6px solid #4d4d4d;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid #3d3d3d;
         }
-        .log-header { display: flex; justify-content: space-between; margin-bottom: 8px; color: #666; font-size: 0.85rem; }
-        .log-title { font-weight: bold; font-size: 1.1rem; }
+        .log-header { display: flex; justify-content: space-between; margin-bottom: 10px; color: #a0a0a0; font-size: 0.85rem; }
+        .log-title { font-weight: bold; font-size: 1.15rem; color: var(--text-main); }
+        .log-context { font-size: 0.95rem; color: #c0c0c0; margin-top: 10px; font-style: italic; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Como está sua dor agora?</h2>
+        <h2>Como está sua dor?</h2>
         
         <div class="slider-container">
             <div id="painValueDisplay">0</div>
             <input type="range" id="painSlider" min="0" max="10" value="0" step="1">
         </div>
 
-        <h4>Localização Principal</h4>
+        <h4>Localização</h4>
         <div class="tags" id="locationTags">
-            <button class="tag" onclick="selectTag(this)">Cabeça</button>
-            <button class="tag" onclick="selectTag(this)">Cervical</button>
-            <button class="tag" onclick="selectTag(this)">Lombar</button>
-            <button class="tag" onclick="selectTag(this)">Articulações</button>
+            <button class="tag" onclick="selectTag(this)">torn D</button>
+            <button class="tag" onclick="selectTag(this)">torn E</button>
             <button class="tag" onclick="selectTag(this)">Outro</button>
         </div>
 
-        <h4>Contexto / Gatilho</h4>
-        <textarea id="contextInput" placeholder="Ex: Acordei assim, logo após o almoço, muito estresse no trabalho..."></textarea>
+        <h4>Contexto</h4>
+        <textarea id="contextInput" placeholder="Ex: Ao acordar, após caminhar, tempo frio..."></textarea>
 
         <button class="save-btn" onclick="saveLog()">Registrar Dor</button>
     </div>
@@ -132,21 +154,26 @@
         </div>
 
     <script>
-        // Lógica da cor do Slider
+        // Lógica da cor do Slider - Mantendo a lógica de cor para intensidade, mas ajustando os tons
         const slider = document.getElementById('painSlider');
         const display = document.getElementById('painValueDisplay');
 
         function getColorForPain(value) {
-            // Interpola de Verde (0) para Amarelo (5) para Vermelho (10)
-            const r = value < 5 ? Math.floor(255 * (value / 5)) : 255;
-            const g = value > 5 ? Math.floor(255 * ((10 - value) / 5)) : 204;
-            return `rgb(${r}, ${g}, 50)`;
+            if (value == 0) return '#f0e6d6'; // Off-white quente para sem dor
+            // Interpola de Bronze (1) para Coral/Vermelho Quente (10)
+            const r = Math.floor(192 + (value * (255 - 192) / 10));
+            const g = Math.floor(132 + (value * (127 - 132) / 10));
+            const b = Math.floor(87 + (value * (80 - 87) / 10));
+            return `rgb(${r}, ${g}, ${b})`;
         }
 
         slider.addEventListener('input', function() {
             display.textContent = this.value;
             display.style.color = getColorForPain(this.value);
         });
+
+        // Inicializa a cor
+        display.style.color = getColorForPain(0);
 
         // Lógica de seleção de Tags
         let selectedLocation = "Não informada";
@@ -162,6 +189,11 @@
             const context = document.getElementById('contextInput').value;
             const now = new Date();
             
+            if (painLevel == 0 && selectedLocation === "Não informada" && !context) {
+                alert("Por favor, preencha pelo menos um campo para registrar.");
+                return;
+            }
+
             const logEntry = {
                 id: Date.now(),
                 date: now.toLocaleDateString('pt-BR'),
@@ -194,21 +226,24 @@
             let logs = JSON.parse(localStorage.getItem('painLogs')) || [];
             
             if (logs.length === 0) {
-                container.innerHTML += '<p style="color: #666; text-align: center;">Nenhum registro ainda.</p>';
+                container.innerHTML += '<p style="color: #a0a0a0; text-align: center;">Nenhum registro ainda.</p>';
                 return;
             }
 
             logs.forEach(log => {
                 const logDiv = document.createElement('div');
                 logDiv.className = 'log-item';
-                logDiv.style.borderLeftColor = getColorForPain(log.level);
+                
+                // Define a cor da borda com base na intensidade da dor
+                const borderColor = log.level > 0 ? getColorForPain(log.level) : '#4d4d4d';
+                logDiv.style.borderLeftColor = borderColor;
                 
                 logDiv.innerHTML = `
                     <div class="log-header">
                         <span>📅 ${log.date} às ${log.time}</span>
                     </div>
-                    <div class="log-title">Intensidade: ${log.level}/10 - ${log.location}</div>
-                    ${log.context ? `<p style="font-size: 0.9rem; color: #555; margin-top: 8px;">"${log.context}"</p>` : ''}
+                    <div class="log-title">Nível ${log.level}/10 - ${log.location}</div>
+                    ${log.context ? `<p class="log-context">"${log.context}"</p>` : ''}
                 `;
                 container.appendChild(logDiv);
             });
@@ -219,3 +254,4 @@
     </script>
 </body>
 </html>
+ 
