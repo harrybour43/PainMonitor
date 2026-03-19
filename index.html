@@ -1,257 +1,652 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Dor - Modo Quente</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Monitor de Dor</title>
+
+    <link rel="manifest" href="./manifest.json" />
+
+    <meta name="theme-color" content="#c08457" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PainMonitor" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <script>
+      document.addEventListener("contextmenu", (event) =>
+        event.preventDefault()
+      );
+      document.onkeydown = function (e) {
+        if (
+          e.keyCode == 123 ||
+          (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) ||
+          (e.ctrlKey && e.keyCode == 85)
+        ) {
+          return false;
+        }
+      };
+    </script>
     <style>
-        :root {
-            --bg-color: #1a1a1a; /* Preto de tom quente */
-            --card-bg: #2d2d2d;
-            --text-main: #f0e6d6; /* Off-white quente */
-            --primary: #c08457; /* Cobre quente */
-            --primary-dark: #a66f46;
-            --secondary: #e6b38a; /* Bronze claro */
-            --accent: #ff7f50; /* Coral para picos */
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 20px;
-            border: 1px solid #3d3d3d;
-        }
-        h2 { margin-top: 0; font-size: 1.5rem; text-align: center; color: var(--secondary); }
-        
-        /* Slider de Dor */
-        .slider-container { text-align: center; margin: 20px 0; }
-        #painValueDisplay {
-            font-size: 3.5rem;
-            font-weight: bold;
-            transition: color 0.3s ease;
-            text-shadow: 0 0 10px rgba(192, 132, 87, 0.5);
-        }
-        input[type=range] {
-            width: 100%;
-            margin: 15px 0;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
+      :root {
+        --bg-color: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-main: #f0e6d6;
+        --secondary: #e6b38a;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-        /* Tags de Localização */
-        .tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; justify-content: center; }
-        .tag {
-            padding: 10px 20px;
-            border: 2px solid #4d4d4d;
-            border-radius: 25px;
-            background: #262626;
-            cursor: pointer;
-            font-size: 1rem;
-            color: var(--text-main);
-            transition: all 0.2s ease;
-        }
-        .tag:hover {
-            border-color: var(--secondary);
-            background: #333;
-        }
-        .tag.active {
-            background: var(--primary);
-            color: #1a1a1a;
-            border-color: var(--primary);
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(192, 132, 87, 0.4);
-        }
+      /* --- TELA SPLASH / LOGIN --- */
+      #loginScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg-color);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .logo-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        text-shadow: 0 0 20px var(--secondary);
+      }
+      .login-btn {
+        background: white;
+        color: #333;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      }
 
-        /* Contexto */
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #4d4d4d;
-            border-radius: 8px;
-            background: #262626;
-            color: var(--text-main);
-            box-sizing: border-box;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 90px;
-            margin-bottom: 20px;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: var(--secondary);
-        }
+      /* --- APP PRINCIPAL --- */
+      #appScreen {
+        display: none;
+        width: 100%;
+        max-width: 400px;
+        padding-bottom: 80px;
+      }
+      .container {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        border: 1px solid #3d3d3d;
+      }
 
-        /* Botão Salvar */
-        button.save-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: #1a1a1a;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button.save-btn:hover { background: var(--secondary); }
-        button.save-btn:active { background: var(--primary-dark); }
+      h2,
+      h4 {
+        color: var(--secondary);
+        margin-top: 0;
+      }
 
-        /* Histórico */
-        .history { width: 100%; max-width: 400px; }
-        .history h3 { color: var(--secondary); text-align: center; }
-        .log-item {
-            background: var(--card-bg);
-            padding: 18px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 6px solid #4d4d4d;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            border: 1px solid #3d3d3d;
-        }
-        .log-header { display: flex; justify-content: space-between; margin-bottom: 10px; color: #a0a0a0; font-size: 0.85rem; }
-        .log-title { font-weight: bold; font-size: 1.15rem; color: var(--text-main); }
-        .log-context { font-size: 0.95rem; color: #c0c0c0; margin-top: 10px; font-style: italic; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 4px; }
+      /* Ergonomia: Alinhamento para a Direita (Uso com Polegar) */
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logout-btn {
+        background: none;
+        border: 1px solid #666;
+        color: #aaa;
+        padding: 5px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .slider-container {
+        text-align: center;
+        margin: 20px 0;
+      }
+      #painValueDisplay {
+        font-size: 4rem;
+        font-weight: bold;
+        transition: color 0.3s;
+      }
+      input[type="range"] {
+        width: 100%;
+        margin: 15px 0;
+      }
+
+      /* Tags Alinhadas à Direita */
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+        justify-content: flex-end;
+      }
+      .tag {
+        padding: 12px 18px;
+        border: 2px solid;
+        border-radius: 25px;
+        background: #262626;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .tag-tornD {
+        border-color: #3498db;
+        color: #3498db;
+      }
+      .tag-tornE {
+        border-color: #9b59b6;
+        color: #9b59b6;
+      }
+      .tag-quadril {
+        border-color: #e67e22;
+        color: #e67e22;
+      }
+      .tag.active {
+        color: #1a1a1a !important;
+      }
+      .tag-tornD.active {
+        background: #3498db;
+      }
+      .tag-tornE.active {
+        background: #9b59b6;
+      }
+      .tag-quadril.active {
+        background: #e67e22;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        background: #262626;
+        color: var(--text-main);
+        min-height: 80px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+      }
+
+      /* Botão Salvar Alinhado à Direita */
+      button.save-btn {
+        width: 80%; /* Não ocupa a tela toda para ficar mais fácil para o polegar */
+        margin-left: auto;
+        display: block;
+        padding: 16px;
+        background: var(--secondary);
+        color: #1a1a1a;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      /* Botões de Ação Inferiores */
+      .bottom-actions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .action-fab {
+        background: #34495e;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+      }
+      .action-fab.ai-btn {
+        background: #8e44ad;
+      }
     </style>
-</head>
-<body>
-
-    <div class="container">
-        <h2>Como está sua dor?</h2>
-        
-        <div class="slider-container">
-            <div id="painValueDisplay">0</div>
-            <input type="range" id="painSlider" min="0" max="10" value="0" step="1">
-        </div>
-
-        <h4>Localização</h4>
-        <div class="tags" id="locationTags">
-            <button class="tag" onclick="selectTag(this)">torn D</button>
-            <button class="tag" onclick="selectTag(this)">torn E</button>
-            <button class="tag" onclick="selectTag(this)">Outro</button>
-        </div>
-
-        <h4>Contexto</h4>
-        <textarea id="contextInput" placeholder="Ex: Ao acordar, após caminhar, tempo frio..."></textarea>
-
-        <button class="save-btn" onclick="saveLog()">Registrar Dor</button>
+  </head>
+  <body>
+    <div id="loginScreen">
+      <div class="logo-icon">🔥</div>
+      <h1 style="color: var(--secondary); margin-top: 0">PainMonitor</h1>
+      <p
+        style="
+          color: #888;
+          margin-bottom: 40px;
+          text-align: center;
+          max-width: 80%;
+        "
+      >
+        Acesse para gerenciar seus registros de forma segura.
+      </p>
+      <button class="login-btn" onclick="loginWithGoogle()">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+          width="20"
+          alt="G"
+        />
+        Entrar com Google
+      </button>
     </div>
 
-    <div class="history" id="historyContainer">
+    <div id="appScreen">
+      <div class="container">
+        <div class="header-area">
+          <h2>Registro de Dor</h2>
+          <button class="logout-btn" onclick="logout()">Sair</button>
         </div>
 
-    <script>
-        // Lógica da cor do Slider - Mantendo a lógica de cor para intensidade, mas ajustando os tons
-        const slider = document.getElementById('painSlider');
-        const display = document.getElementById('painValueDisplay');
+        <div class="slider-container">
+          <div id="painValueDisplay">0</div>
+          <input
+            type="range"
+            id="painSlider"
+            min="0"
+            max="10"
+            value="0"
+            step="1"
+          />
+        </div>
 
-        function getColorForPain(value) {
-            if (value == 0) return '#f0e6d6'; // Off-white quente para sem dor
-            // Interpola de Bronze (1) para Coral/Vermelho Quente (10)
-            const r = Math.floor(192 + (value * (255 - 192) / 10));
-            const g = Math.floor(132 + (value * (127 - 132) / 10));
-            const b = Math.floor(87 + (value * (80 - 87) / 10));
-            return `rgb(${r}, ${g}, ${b})`;
+        <h4 style="text-align: right">Localização</h4>
+        <div class="tags" id="locationTags">
+          <button
+            class="tag tag-tornD"
+            onclick="selectTag(this, 'Tornozelo D')"
+          >
+            TORN D
+          </button>
+          <button
+            class="tag tag-tornE"
+            onclick="selectTag(this, 'Tornozelo E')"
+          >
+            TORN E
+          </button>
+          <button class="tag tag-quadril" onclick="selectTag(this, 'Quadril')">
+            QUADRIL
+          </button>
+        </div>
+
+        <h4 style="text-align: right">Contexto</h4>
+        <textarea
+          id="contextInput"
+          placeholder="O que causou? Clima?"
+        ></textarea>
+
+        <button class="save-btn" onclick="saveLog()">Registrar ➔</button>
+      </div>
+    </div>
+
+    <div class="bottom-actions" id="actionButtons" style="display: none">
+      <button
+        class="action-fab ai-btn"
+        onclick="analyzeDay()"
+        title="Análise com IA"
+      >
+        ✨
+      </button>
+      <button class="action-fab" onclick="openChart()" title="Ver Gráfico">
+        📊
+      </button>
+    </div>
+
+    <div
+      id="aiModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+      "
+    >
+      <div
+        class="modal-content"
+        style="
+          background: var(--card-bg);
+          width: 100%;
+          max-width: 400px;
+          padding: 24px;
+          border-radius: 12px;
+          position: relative;
+          border: 1px solid #8e44ad;
+          box-shadow: 0 0 20px rgba(142, 68, 173, 0.4);
+        "
+      >
+        <button
+          onclick="document.getElementById('aiModal').style.display = 'none'"
+          style="
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #ccc;
+            cursor: pointer;
+            background: none;
+            border: none;
+          "
+        >
+          ✖
+        </button>
+        <h3
+          style="
+            margin-top: 0;
+            color: #8e44ad;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          "
+        >
+          ✨ Análise do Dia
+        </h3>
+        <p
+          id="aiResponseText"
+          style="line-height: 1.5; color: var(--text-main); font-size: 0.95rem"
+        ></p>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+      // Importando módulos de Autenticação
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+      // SUAS CHAVES AQUI
+      const firebaseConfig = {
+        apiKey: "AIzaSyDSK6mkMqp-Ivjbb3qoZUrkNfvuvjDrA2I",
+        authDomain: "painmonitor-7bc13.firebaseapp.com",
+        projectId: "painmonitor-7bc13",
+        storageBucket: "painmonitor-7bc13.firebasestorage.app",
+        messagingSenderId: "261972149086",
+        appId: "1:261972149086:web:41422c1174f38415cd45cf",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      let currentUser = null;
+
+      // 1. Controle de Autenticação
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          // Usuário Logado
+          currentUser = user;
+          document.getElementById("loginScreen").style.display = "none";
+          document.getElementById("appScreen").style.display = "block";
+          document.getElementById("actionButtons").style.display = "flex";
+        } else {
+          // Usuário Deslogado
+          currentUser = null;
+          document.getElementById("loginScreen").style.display = "flex";
+          document.getElementById("appScreen").style.display = "none";
+          document.getElementById("actionButtons").style.display = "none";
         }
+      });
 
-        slider.addEventListener('input', function() {
-            display.textContent = this.value;
-            display.style.color = getColorForPain(this.value);
+      window.loginWithGoogle = () => {
+        signInWithPopup(auth, provider).catch((error) => {
+          console.error("Erro no login", error);
+          alert(
+            "Erro ao fazer login. Verifique se ativou o Google Auth no Firebase."
+          );
         });
+      };
 
-        // Inicializa a cor
-        display.style.color = getColorForPain(0);
+      window.logout = () => {
+        signOut(auth);
+      };
 
-        // Lógica de seleção de Tags
-        let selectedLocation = "Não informada";
-        function selectTag(element) {
-            document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-            selectedLocation = element.innerText;
+      // 2. Lógica da Interface (Slider e Cores mantidos)
+      const slider = document.getElementById("painSlider");
+      const display = document.getElementById("painValueDisplay");
+
+      function getColorForPain(value) {
+        let r, g, b;
+        if (value <= 5) {
+          const pct = value / 5;
+          r = Math.floor(52 + (241 - 52) * pct);
+          g = Math.floor(152 + (196 - 152) * pct);
+          b = Math.floor(219 + (15 - 219) * pct);
+        } else {
+          const pct = (value - 5) / 5;
+          r = Math.floor(241 + (255 - 241) * pct);
+          g = Math.floor(196 + (0 - 196) * pct);
+          b = Math.floor(15 + (0 - 15) * pct);
+        }
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      slider.addEventListener("input", function () {
+        const val = parseInt(this.value);
+        display.textContent = val;
+        display.style.color = getColorForPain(val);
+      });
+      display.style.color = getColorForPain(0);
+
+      let selectedLocation = "";
+      window.selectTag = function (element, locName) {
+        document
+          .querySelectorAll(".tag")
+          .forEach((t) => t.classList.remove("active"));
+        element.classList.add("active");
+        selectedLocation = locName;
+      };
+
+      // 3. Salvar vinculando ao ID do Usuário (UID)
+      window.saveLog = async function () {
+        const painLevel = parseInt(slider.value);
+        const contextText = document.getElementById("contextInput").value;
+
+        if (!currentUser) {
+          alert("Você precisa estar logado!");
+          return;
+        }
+        if (painLevel === 0 && !selectedLocation && !contextText) {
+          alert("Preencha algum dado.");
+          return;
         }
 
-        // Lógica de Salvar no LocalStorage
-        function saveLog() {
-            const painLevel = slider.value;
-            const context = document.getElementById('contextInput').value;
-            const now = new Date();
-            
-            if (painLevel == 0 && selectedLocation === "Não informada" && !context) {
-                alert("Por favor, preencha pelo menos um campo para registrar.");
-                return;
+        const btn = document.querySelector(".save-btn");
+        const textoOriginal = btn.innerText;
+        btn.innerText = "Salvando...";
+        btn.disabled = true;
+
+        try {
+          await addDoc(collection(db, "registros_dor"), {
+            userId: currentUser.uid, // <-- ISSO GARANTE A PRIVACIDADE
+            intensidade: painLevel,
+            localizacao: selectedLocation || "Outro",
+            contexto: contextText,
+            dataHora: serverTimestamp(),
+          });
+
+          slider.value = 0;
+          slider.dispatchEvent(new Event("input"));
+          document
+            .querySelectorAll(".tag")
+            .forEach((t) => t.classList.remove("active"));
+          document.getElementById("contextInput").value = "";
+          selectedLocation = "";
+
+          btn.innerText = "Salvo ✔️";
+          setTimeout(() => {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+          }, 2000);
+        } catch (e) {
+          console.error("Erro:", e);
+          alert("Erro de permissão. Atualizou as regras do Firebase?");
+          btn.innerText = textoOriginal;
+          btn.disabled = false;
+        }
+      };
+
+      window.openChart = () => {
+        alert("Gráfico sendo remontado para o novo layout.");
+      };
+      window.analyzeDay = async function () {
+        if (!currentUser) {
+          alert("Você precisa estar logado para analisar dados.");
+          return;
+        }
+
+        // Abre a janela e mostra o aviso de carregamento
+        document.getElementById("aiModal").style.display = "flex";
+        document.getElementById("aiResponseText").innerHTML =
+          "<i>Lendo seus registros e consultando a IA... isso pode levar alguns segundos.</i>";
+
+        try {
+          // 1. Busca todos os registros exclusivos do usuário logado
+          const q = query(
+            collection(db, "registros_dor"),
+            where("userId", "==", currentUser.uid)
+          );
+          const querySnapshot = await getDocs(q);
+
+          // 2. Filtra apenas os registros das últimas 24 horas (Feito no JS para evitar criação de índices complexos no Firebase)
+          const agora = new Date();
+          const limite24h = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+          let registrosTexto = "";
+          let contagem = 0;
+
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.dataHora) {
+              const dataRegistro = data.dataHora.toDate();
+              if (dataRegistro >= limite24h) {
+                const horaStr = dataRegistro.toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                registrosTexto += `- Às ${horaStr}: Dor nível ${
+                  data.intensidade
+                }/10 no(a) ${data.localizacao}. Contexto: "${
+                  data.contexto || "Sem contexto"
+                }"\n`;
+                contagem++;
+              }
             }
+          });
 
-            const logEntry = {
-                id: Date.now(),
-                date: now.toLocaleDateString('pt-BR'),
-                time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                level: painLevel,
-                location: selectedLocation,
-                context: context
-            };
+          if (contagem === 0) {
+            document.getElementById("aiResponseText").innerHTML =
+              "Você não tem registros nas últimas 24 horas para eu analisar. Registre algumas dores primeiro!";
+            return;
+          }
 
-            let logs = JSON.parse(localStorage.getItem('painLogs')) || [];
-            logs.unshift(logEntry); // Adiciona no início da lista
-            localStorage.setItem('painLogs', JSON.stringify(logs));
+          // 3. Monta a instrução de comportamento para o Gemini
+          const promptMestre = `Você é um analista de dados de saúde focado em dor crônica e sequelas ortopédicas. 
+          Analise os seguintes registros de dor das últimas 24 horas do paciente e escreva um resumo em um único parágrafo fluido contendo:
+          1. O pico de dor e o possível gatilho.
+          2. Uma correlação ou padrão observado (ex: piora com o clima, melhora após repouso).
+          3. Uma sugestão prática ou palavra de cautela em tom profissional.
+          Não use saudações, vá direto ao ponto.
 
-            // Reseta o formulário
-            slider.value = 0;
-            display.textContent = 0;
-            display.style.color = getColorForPain(0);
-            document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-            document.getElementById('contextInput').value = '';
-            selectedLocation = "Não informada";
+          Registros do paciente:
+          ${registrosTexto}`;
 
-            renderHistory();
+          // 4. Envia para a API do Google AI Studio
+          const API_KEY = "AIzaSyAnjf2kQG2DK6Jmxj84jwqDHLZ5XEJbCzg";
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+          const resposta = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptMestre }] }],
+            }),
+          });
+
+          const aiData = await resposta.json();
+
+          if (aiData.error) {
+            console.error("Erro Gemini:", aiData.error);
+            document.getElementById("aiResponseText").innerHTML =
+              "Erro de comunicação com a IA. Verifique o console.";
+            return;
+          }
+
+          // 5. Exibe a resposta formatada na tela
+          const textoFinal = aiData.candidates[0].content.parts[0].text.replace(
+            /\n/g,
+            "<br>"
+          );
+          document.getElementById("aiResponseText").innerHTML = textoFinal;
+        } catch (e) {
+          console.error("Erro no processamento:", e);
+          document.getElementById("aiResponseText").innerHTML =
+            "Erro ao ler os dados do banco.";
         }
-
-        // Lógica para exibir os dados
-        function renderHistory() {
-            const container = document.getElementById('historyContainer');
-            container.innerHTML = '<h3>Últimos Registros</h3>';
-            
-            let logs = JSON.parse(localStorage.getItem('painLogs')) || [];
-            
-            if (logs.length === 0) {
-                container.innerHTML += '<p style="color: #a0a0a0; text-align: center;">Nenhum registro ainda.</p>';
-                return;
-            }
-
-            logs.forEach(log => {
-                const logDiv = document.createElement('div');
-                logDiv.className = 'log-item';
-                
-                // Define a cor da borda com base na intensidade da dor
-                const borderColor = log.level > 0 ? getColorForPain(log.level) : '#4d4d4d';
-                logDiv.style.borderLeftColor = borderColor;
-                
-                logDiv.innerHTML = `
-                    <div class="log-header">
-                        <span>📅 ${log.date} às ${log.time}</span>
-                    </div>
-                    <div class="log-title">Nível ${log.level}/10 - ${log.location}</div>
-                    ${log.context ? `<p class="log-context">"${log.context}"</p>` : ''}
-                `;
-                container.appendChild(logDiv);
-            });
-        }
-
-        // Carrega o histórico ao abrir a página
-        renderHistory();
+      };
     </script>
-</body>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((reg) =>
+              console.log("Service Worker registrado com sucesso!")
+            )
+            .catch((err) => console.log("Erro no Service Worker:", err));
+        });
+      }
+    </script>
+  </body>
 </html>
- 
