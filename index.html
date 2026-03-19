@@ -820,7 +820,7 @@
         });
       }
 
-      // --- INTELIGÊNCIA ARTIFICIAL ---
+     // --- INTELIGÊNCIA ARTIFICIAL (COM ANTI-BLOQUEIO E DEDO-DURO) ---
       window.analyzeDay = async function () {
         if (!currentUser) {
           alert("Faça login para analisar dados.");
@@ -860,29 +860,56 @@
             return;
           }
 
-          const promptMestre = `Você é um analista de dados de saúde focado em dor crônica e sequelas ortopédicas.
-          Analise os registros dos últimos 10 dias e resuma em um parágrafo:
-          1. O pico de dor e o possível gatilho.
-          2. Uma correlação ou padrão observado ao longo dos dias.
-          3. Uma sugestão prática.
-          Sem saudações. Registros: ${registrosTexto}`;
+          // Deixei o prompt mais brando para não assustar o filtro médico
+          const promptMestre = `Atue como um assistente de organização de rotina. 
+          Leia o diário de desconforto físico dos últimos 10 dias do usuário e escreva um único parágrafo com:
+          1. O dia e horário de maior nível relatado e o que ele estava fazendo.
+          2. Algum padrão que você notar (ex: horários que mais se repetem).
+          3. Um lembrete amigável de autocuidado.
+          Não dê diagnósticos médicos. Seja direto e sem saudações.
+          
+          Diário: ${registrosTexto}`;
 
           const API_KEY = "AIzaSyAnjf2kQG2DK6Jmxj84jwqDHLZ5XEJbCzg";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
           const resposta = await fetch(url, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: promptMestre }] }] }),
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              contents: [{ parts: [{ text: promptMestre }] }],
+              // Abaixando os escudos de segurança do Gemini
+              safetySettings: [
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
+              ]
+            }),
           });
 
           const aiData = await resposta.json();
-          if (aiData.error) throw new Error("Erro na API do Gemini");
+          
+          // Dedo-duro 1: Erro de chave ou servidor
+          if (aiData.error) {
+            console.error("Erro da API:", aiData.error);
+            document.getElementById("aiResponseText").innerHTML = `<b>Erro do Google:</b> ${aiData.error.message}`;
+            return;
+          }
 
+          // Dedo-duro 2: Bloqueio de Segurança
+          if (!aiData.candidates || !aiData.candidates[0].content) {
+             console.error("Resposta Bloqueada:", aiData);
+             document.getElementById("aiResponseText").innerHTML = "<b>Aviso:</b> O Google Gemini bloqueou a resposta por achar que é um conselho médico. Verifique o console para mais detalhes.";
+             return;
+          }
+
+          // Se deu tudo certo, exibe o texto!
           document.getElementById("aiResponseText").innerHTML = aiData.candidates[0].content.parts[0].text.replace(/\n/g, "<br>");
+          
         } catch (e) {
-          console.error(e); document.getElementById("aiResponseText").innerHTML = "Erro ao processar a análise com a IA.";
+          console.error("Erro interno:", e); 
+          document.getElementById("aiResponseText").innerHTML = `Erro interno do aplicativo: ${e.message}`;
         }
-      }; // <-- A CHAVE SALVADORA!
+      }; // FIM DA FUNÇÃO
     </script>
     <script>
       if ("serviceWorker" in navigator) {
