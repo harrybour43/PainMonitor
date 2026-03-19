@@ -18,6 +18,8 @@
     <meta name="apple-mobile-web-app-title" content="PainMonitor" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
       :root {
         --bg-color: #1a1a1a;
@@ -34,7 +36,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: box-shadow 0.3s ease, background-color 0.3s ease; /* Transição suave para o alerta vermelho */
+        transition: box-shadow 0.3s ease, background-color 0.3s ease;
       }
 
       /* Efeito de Emergência (Nível 10) */
@@ -310,7 +312,6 @@
       <h1 style="color: var(--secondary); margin-top: 0; margin-bottom: 30px">
         PainMonitor
       </h1>
-
       <input
         type="email"
         id="emailInput"
@@ -323,7 +324,6 @@
         class="auth-input"
         placeholder="Sua senha (mín. 6 letras)"
       />
-
       <div class="btn-group">
         <button class="login-btn" onclick="loginWithEmail()">Entrar</button>
         <button class="register-btn" onclick="createAccount()">
@@ -356,27 +356,36 @@
           <a href="tel:192">⚠️ DOR EXTREMA: LIGAR SAMU (192)</a>
         </div>
 
-        <h4 style="text-align: right">Localização</h4>
+        <h4 style="text-align: right">Onde dói?</h4>
         <div class="tags" id="locationTags">
           <button
             class="tag tag-tornD"
-            onclick="selectTag(this, 'Tornozelo Direito')"
+            onclick="selectTag(this, 'Tornozelo Direito', '#3498db')"
           >
             TORNOZELO D
           </button>
           <button
             class="tag tag-tornE"
-            onclick="selectTag(this, 'Tornozelo Esquerdo')"
+            onclick="selectTag(this, 'Tornozelo Esquerdo', '#9b59b6')"
           >
             TORNOZELO E
           </button>
-          <button class="tag tag-quadril" onclick="selectTag(this, 'Quadril')">
+          <button
+            class="tag tag-quadril"
+            onclick="selectTag(this, 'Quadril', '#e67e22')"
+          >
             QUADRIL
           </button>
-          <button class="tag tag-hernia" onclick="selectTag(this, 'Hérnia')">
+          <button
+            class="tag tag-hernia"
+            onclick="selectTag(this, 'Hérnia', '#1abc9c')"
+          >
             HÉRNIA
           </button>
-          <button class="tag tag-esofago" onclick="selectTag(this, 'Esôfago')">
+          <button
+            class="tag tag-esofago"
+            onclick="selectTag(this, 'Esôfago', '#e84393')"
+          >
             ESÔFAGO
           </button>
         </div>
@@ -459,12 +468,74 @@
             gap: 8px;
           "
         >
-          ✨ Análise do Dia
+          ✨ Análise dos Últimos 10 Dias
         </h3>
         <p
           id="aiResponseText"
           style="line-height: 1.5; color: var(--text-main); font-size: 0.95rem"
         ></p>
+      </div>
+    </div>
+
+    <div
+      id="chartModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+      "
+    >
+      <div
+        class="modal-content"
+        style="
+          background: var(--card-bg);
+          width: 100%;
+          max-width: 600px;
+          padding: 20px;
+          border-radius: 12px;
+          position: relative;
+        "
+      >
+        <button
+          onclick="document.getElementById('chartModal').style.display = 'none'"
+          style="
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #ccc;
+            cursor: pointer;
+            background: none;
+            border: none;
+          "
+        >
+          ✖
+        </button>
+        <h3 style="margin-top: 0; color: var(--secondary); text-align: center">
+          Seus Padrões
+        </h3>
+        <p id="loadingChartText" style="text-align: center; color: #888">
+          Buscando dados na nuvem...
+        </p>
+        <canvas
+          id="painChart"
+          style="
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+          "
+        ></canvas>
       </div>
     </div>
 
@@ -501,7 +572,6 @@
       const auth = getAuth(app);
       let currentUser = null;
 
-      // Controle de Autenticação
       onAuthStateChanged(auth, (user) => {
         if (user) {
           currentUser = user;
@@ -516,30 +586,25 @@
         }
       });
 
-      // Função de Login
       window.loginWithEmail = () => {
         const email = document.getElementById("emailInput").value;
         const pass = document.getElementById("passwordInput").value;
         const errorMsg = document.getElementById("loginError");
-
         if (!email || !pass) {
           errorMsg.innerText = "Preencha e-mail e senha.";
           errorMsg.style.display = "block";
           return;
         }
-
-        signInWithEmailAndPassword(auth, email, pass).catch((error) => {
+        signInWithEmailAndPassword(auth, email, pass).catch(() => {
           errorMsg.innerText = "Erro: E-mail ou senha incorretos.";
           errorMsg.style.display = "block";
         });
       };
 
-      // Função de Criar Conta
       window.createAccount = () => {
         const email = document.getElementById("emailInput").value;
         const pass = document.getElementById("passwordInput").value;
         const errorMsg = document.getElementById("loginError");
-
         if (!email || !pass) {
           errorMsg.innerText = "Preencha e-mail e senha.";
           errorMsg.style.display = "block";
@@ -550,7 +615,6 @@
           errorMsg.style.display = "block";
           return;
         }
-
         createUserWithEmailAndPassword(auth, email, pass).catch((error) => {
           if (error.code === "auth/email-already-in-use") {
             errorMsg.innerText =
@@ -567,7 +631,6 @@
         signOut(auth);
       };
 
-      // Lógica da Interface (Slider e SAMU Restaurado)
       const slider = document.getElementById("painSlider");
       const display = document.getElementById("painValueDisplay");
       const samuAlert = document.getElementById("samuAlert");
@@ -594,7 +657,6 @@
         display.textContent = val;
         display.style.color = getColorForPain(val);
 
-        // Disparo Visual do SAMU
         if (val === 10) {
           samuAlert.style.display = "block";
           body.classList.add("emergency");
@@ -606,15 +668,16 @@
       display.style.color = getColorForPain(0);
 
       let selectedLocation = "";
-      window.selectTag = function (element, locName) {
+      let selectedColor = ""; 
+      window.selectTag = function (element, locName, colorCode) {
         document
           .querySelectorAll(".tag")
           .forEach((t) => t.classList.remove("active"));
         element.classList.add("active");
         selectedLocation = locName;
+        selectedColor = colorCode;
       };
 
-      // Salvar Registro
       window.saveLog = async function () {
         const painLevel = parseInt(slider.value);
         const contextText = document.getElementById("contextInput").value;
@@ -638,17 +701,19 @@
             userId: currentUser.uid,
             intensidade: painLevel,
             localizacao: selectedLocation || "Outro",
+            corOriginal: selectedColor || "#cccccc", 
             contexto: contextText,
             dataHora: serverTimestamp(),
           });
 
           slider.value = 0;
-          slider.dispatchEvent(new Event("input")); // Reseta o slider e o alerta do SAMU
+          slider.dispatchEvent(new Event("input"));
           document
             .querySelectorAll(".tag")
             .forEach((t) => t.classList.remove("active"));
           document.getElementById("contextInput").value = "";
           selectedLocation = "";
+          selectedColor = "";
 
           btn.innerText = "Salvo ✔️";
           setTimeout(() => {
@@ -663,11 +728,99 @@
         }
       };
 
-      window.openChart = () => {
-        alert("Gráfico temporariamente desativado para o teste de login.");
+      // --- LÓGICA DO GRÁFICO ---
+      let painChartInstance = null;
+      window.openChart = async function () {
+        if (!currentUser) return;
+        document.getElementById("chartModal").style.display = "flex";
+        document.getElementById("loadingChartText").style.display = "block";
+
+        try {
+          const q = query(
+            collection(db, "registros_dor"),
+            where("userId", "==", currentUser.uid)
+          );
+          const querySnapshot = await getDocs(q);
+
+          let registros = [];
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.dataHora) registros.push(data);
+          });
+
+          registros.sort(
+            (a, b) => a.dataHora.toMillis() - b.dataHora.toMillis()
+          );
+
+          const datasets = {};
+          registros.forEach((data) => {
+            const dataObj = data.dataHora.toDate();
+            const diaStr = dataObj.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+            });
+            const horaDecimal = dataObj.getHours() + dataObj.getMinutes() / 60;
+
+            if (!datasets[data.localizacao]) {
+              datasets[data.localizacao] = {
+                label: data.localizacao,
+                backgroundColor: (data.corOriginal || "#ccc") + "80",
+                borderColor: data.corOriginal || "#ccc",
+                data: [],
+              };
+            }
+            datasets[data.localizacao].data.push({
+              x: diaStr,
+              y: horaDecimal,
+              r: data.intensidade * 3,
+            });
+          });
+
+          const chartData = { datasets: Object.values(datasets) };
+          document.getElementById("loadingChartText").style.display = "none";
+          renderChart(chartData);
+        } catch (e) {
+          console.error("Erro no gráfico:", e);
+          document.getElementById("loadingChartText").innerText =
+            "Erro ao carregar dados.";
+        }
       };
 
-      // Inteligência Artificial
+      function renderChart(chartData) {
+        const ctx = document.getElementById("painChart").getContext("2d");
+        if (painChartInstance) painChartInstance.destroy();
+
+        painChartInstance = new Chart(ctx, {
+          type: "bubble",
+          data: chartData,
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                title: { display: true, text: "Hora do Dia", color: "#ccc" },
+                min: 0,
+                max: 24,
+                ticks: {
+                  color: "#888",
+                  stepSize: 4,
+                  callback: function (value) {
+                    return value + "h";
+                  },
+                },
+                grid: { color: "#333" },
+              },
+              x: {
+                title: { display: true, text: "Data", color: "#ccc" },
+                ticks: { color: "#888" },
+                grid: { color: "#333" },
+              },
+            },
+            plugins: { legend: { labels: { color: "#ccc" } } },
+          },
+        });
+      }
+
+      // --- INTELIGÊNCIA ARTIFICIAL ---
       window.analyzeDay = async function () {
         if (!currentUser) {
           alert("Faça login para analisar dados.");
@@ -679,14 +832,11 @@
           "<i>Lendo seus registros e consultando a IA...</i>";
 
         try {
-          const q = query(
-            collection(db, "registros_dor"),
-            where("userId", "==", currentUser.uid)
-          );
+          const q = query(collection(db, "registros_dor"), where("userId", "==", currentUser.uid));
           const querySnapshot = await getDocs(q);
 
           const agora = new Date();
-          const limite24h = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+          const limite10Dias = new Date(agora.getTime() - 10 * 24 * 60 * 60 * 1000);
           let registrosTexto = "";
           let contagem = 0;
 
@@ -694,59 +844,45 @@
             const data = doc.data();
             if (data.dataHora) {
               const dataRegistro = data.dataHora.toDate();
-              if (dataRegistro >= limite24h) {
-                const horaStr = dataRegistro.toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
-                registrosTexto += `- Às ${horaStr}: Dor nível ${
-                  data.intensidade
-                }/10 no(a) ${data.localizacao}. Contexto: "${
-                  data.contexto || "Sem contexto"
-                }"\n`;
+
+              if (dataRegistro >= limite10Dias) {
+                const dataStr = dataRegistro.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+                const horaStr = dataRegistro.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+                registrosTexto += `- Dia ${dataStr} às ${horaStr}: Dor nível ${data.intensidade}/10 no(a) ${data.localizacao}. Contexto: "${data.contexto || "Sem contexto"}"\n`;
                 contagem++;
               }
             }
           });
 
           if (contagem === 0) {
-            document.getElementById("aiResponseText").innerHTML =
-              "Você não tem registros nas últimas 24 horas.";
+            document.getElementById("aiResponseText").innerHTML = "Você não tem registros nos últimos 10 dias.";
             return;
           }
 
-          const promptMestre = `Você é um analista de dados de saúde focado em dor crônica e sequelas ortopédicas. 
-          Analise os registros das últimas 24h e resuma em um parágrafo:
+          const promptMestre = `Você é um analista de dados de saúde focado em dor crônica e sequelas ortopédicas.
+          Analise os registros dos últimos 10 dias e resuma em um parágrafo:
           1. O pico de dor e o possível gatilho.
-          2. Uma correlação ou padrão observado.
+          2. Uma correlação ou padrão observado ao longo dos dias.
           3. Uma sugestão prática.
-          Sem saudações.
-
-          Registros:
-          ${registrosTexto}`;
+          Sem saudações. Registros: ${registrosTexto}`;
 
           const API_KEY = "AIzaSyAnjf2kQG2DK6Jmxj84jwqDHLZ5XEJbCzg";
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
           const resposta = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: promptMestre }] }],
-            }),
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptMestre }] }] }),
           });
 
           const aiData = await resposta.json();
           if (aiData.error) throw new Error("Erro na API do Gemini");
 
-          document.getElementById("aiResponseText").innerHTML =
-            aiData.candidates[0].content.parts[0].text.replace(/\n/g, "<br>");
+          document.getElementById("aiResponseText").innerHTML = aiData.candidates[0].content.parts[0].text.replace(/\n/g, "<br>");
         } catch (e) {
-          console.error(e);
-          document.getElementById("aiResponseText").innerHTML =
-            "Erro ao processar a análise.";
+          console.error(e); document.getElementById("aiResponseText").innerHTML = "Erro ao processar a análise com a IA.";
         }
-      };
+      }; // <-- A CHAVE SALVADORA!
     </script>
     <script>
       if ("serviceWorker" in navigator) {
