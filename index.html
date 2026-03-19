@@ -382,6 +382,7 @@
     </div>
 
     <script type="module">
+      // 1. Importações (Limpei a duplicação do Firestore que estava no seu arquivo)
       import {
         getFirestore,
         collection,
@@ -391,22 +392,17 @@
         where,
         getDocs,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        serverTimestamp,
-      } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-      // Importando módulos de Autenticação
+
+      // Importamos o signInWithRedirect em vez do Popup
       import {
         getAuth,
-        signInWithPopup,
+        signInWithRedirect,
         GoogleAuthProvider,
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-      // SUAS CHAVES AQUI
+      // SUAS CHAVES
       const firebaseConfig = {
         apiKey: "AIzaSyDSK6mkMqp-Ivjbb3qoZUrkNfvuvjDrA2I",
         authDomain: "painmonitor-7bc13.firebaseapp.com",
@@ -423,16 +419,14 @@
 
       let currentUser = null;
 
-      // 1. Controle de Autenticação
+      // Controle de Autenticação (Funciona perfeitamente com o Redirect)
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          // Usuário Logado
           currentUser = user;
           document.getElementById("loginScreen").style.display = "none";
           document.getElementById("appScreen").style.display = "block";
           document.getElementById("actionButtons").style.display = "flex";
         } else {
-          // Usuário Deslogado
           currentUser = null;
           document.getElementById("loginScreen").style.display = "flex";
           document.getElementById("appScreen").style.display = "none";
@@ -440,14 +434,19 @@
         }
       });
 
+      // Nova Função de Login (Própria para Mobile)
       window.loginWithGoogle = () => {
-        signInWithPopup(auth, provider).catch((error) => {
+        signInWithRedirect(auth, provider).catch((error) => {
           console.error("Erro no login", error);
-          alert(
-            "Erro ao fazer login. Verifique se ativou o Google Auth no Firebase."
-          );
+          alert("Erro ao iniciar login com Google.");
         });
       };
+
+      window.logout = () => {
+        signOut(auth);
+      };
+
+      // ... (O resto do seu código continua exatamente igual a partir daqui: slider, saveLog, etc)
 
       window.logout = () => {
         signOut(auth);
